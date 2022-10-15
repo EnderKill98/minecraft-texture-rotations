@@ -1,0 +1,22 @@
+x_min = 0
+x_max = 0
+z_min = 0
+z_max = 0
+
+y_min = 0
+y_max = 0
+
+# Best match with your cpu cores
+threads = 4
+# Fixes each thread to a single cpu. This can improve performance
+# but might cause some threads to hang behind more.
+pin_threads_to_cores = false
+
+# Comment out what to use
+#textures = "Sodium"
+#textures = "Sodium19"
+#textures = "Vanilla"
+
+formation = [
+  { x = -6, y = 1, z = 0, rotation = 3, is_side = false },
+]

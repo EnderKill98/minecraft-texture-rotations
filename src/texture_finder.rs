@@ -1,13 +1,17 @@
-use crate::placement::Placement;
-use crate::texture_provider::*;
+use crate::{placement::Placement, texture_provider::TextureProvider};
 
-pub struct TextureFinder {
-    pub placement: Placement,
+pub struct TextureFinder<T> {
     pub start_x: i32,
     pub end_x: i32,
+    pub y_min: i32,
+    pub y_max: i32,
+    pub z_min: i32,
+    pub z_max: i32,
+    pub textures: T,
+    pub placement: Placement,
 }
 
-impl TextureFinder {
+impl<T: TextureProvider> TextureFinder<T> {
     pub fn run(&self) {
         let thread_name = std::thread::current()
             .name()
@@ -21,15 +25,15 @@ impl TextureFinder {
                 let cur = x - self.start_x;
                 log::debug!("[{}] Progress: {}%", thread_name, cur * 100 / max);
             }
-            for z in crate::Z_MIN..=crate::Z_MAX {
-                'next_attempt: for y in crate::Y_MIN..=crate::Y_MAX {
+            for z in self.z_min..=self.z_max {
+                'next_attempt: for y in self.y_min..=self.y_max {
                     for b in &self.placement.tops_and_bottoms {
-                        if b.rotation != get_texture(x + b.x, y + b.y, z + b.z, 4) {
+                        if b.rotation != self.textures.get_texture(x + b.x, y + b.y, z + b.z, 4) {
                             continue 'next_attempt;
                         }
                     }
                     for b in &self.placement.sides {
-                        if b.rotation != get_texture(x + b.x, y + b.y, z + b.z, 2) {
+                        if b.rotation != self.textures.get_texture(x + b.x, y + b.y, z + b.z, 2) {
                             continue 'next_attempt;
                         }
                     }

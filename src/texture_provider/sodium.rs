@@ -7,17 +7,21 @@ pub fn stafford_mix13(mut z: i64) -> i64 {
 
 const PHI: i64 = 0x9E3779B97F4A7C15u64 as i64;
 
-#[allow(dead_code)]
-pub fn random(mut seed: i64) -> i32 {
-    seed ^= seed >> 33;
-    seed *= 0xff51afd7ed558ccdu64 as i64;
-    seed ^= seed >> 33;
-    seed *= 0xc4ceb9fe1a85ec53u64 as i64;
-    seed ^= seed >> 33;
+#[derive(Clone, Copy, Default)]
+pub struct SodiumTextures {}
 
-    seed += PHI;
-    let rand1: i64 = stafford_mix13(seed);
-    let rand2: i64 = stafford_mix13(seed + PHI);
+impl super::TextureProvider for SodiumTextures {
+    fn random(&self, mut seed: i64) -> i32 {
+        seed ^= seed >> 33;
+        seed *= 0xff51afd7ed558ccdu64 as i64;
+        seed ^= seed >> 33;
+        seed *= 0xc4ceb9fe1a85ec53u64 as i64;
+        seed ^= seed >> 33;
 
-    (rand1 + rand2) as i32
+        seed += PHI;
+        let rand1: i64 = stafford_mix13(seed);
+        let rand2: i64 = stafford_mix13(seed + PHI);
+
+        (rand1 + rand2) as i32
+    }
 }
