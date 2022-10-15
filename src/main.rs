@@ -5,7 +5,7 @@ mod texture_provider;
 
 use crate::{
     rotation_info::RotationInfo,
-    texture_provider::{Sodium19Textures, SodiumTextures, VanillaTextures},
+    texture_provider::{Sodium19Textures, SodiumTextures, TextureProvider, VanillaTextures},
 };
 use clap::Parser;
 use serde::Deserialize;
@@ -20,6 +20,10 @@ struct Opts {
     /// Path to the toml config which specifies scanning parameters. See config.toml.sample for the format
     #[clap(long, short, default_value = "config.toml")]
     config: PathBuf,
+    /*x: i32,
+    y: i32,
+    z: i32,
+    modulo: i32,*/
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -39,6 +43,17 @@ struct Config {
 fn main() {
     // Parse cli arguments
     let ref opts = Opts::parse();
+
+    /*
+    if true {
+        #[rustfmt::skip]
+        println!("Res Van: {}", VanillaTextures {}.get_texture(opts.x, opts.y, opts.z, opts.modulo));
+        #[rustfmt::skip]
+        println!("Res Sod: {}", SodiumTextures {}.get_texture(opts.x, opts.y, opts.z, opts.modulo));
+        #[rustfmt::skip]
+        println!("Res Sod19: {}", Sodium19Textures {}.get_texture(opts.x, opts.y, opts.z, opts.modulo));
+        std::process::exit(0);
+    }*/
 
     // Set logging level if RUST_LOG
     if let Some(level) = &opts.level {
@@ -108,6 +123,7 @@ fn main() {
         .step_by(per_x as usize + 1)
         .enumerate()
     {
+        log::debug!("Worker {i} doing {start} to {}", start + per_x);
         let placement = placement.clone();
         let config = config.clone();
 
