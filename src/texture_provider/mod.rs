@@ -8,7 +8,7 @@ pub use vanilla::VanillaTextures;
 
 pub trait TextureProvider: Copy + Default {
     fn get_coordinate_random(&self, x: i32, y: i32, z: i32) -> i64 {
-        let mut l: i64 = (x as i64 * 3129871) ^ z as i64 * 116129781i64 ^ y as i64;
+        let mut l: i64 = (x * 3129871) as i64 ^ (z as i64 * 116129781i64) ^ y as i64;
         l = l * l * 42317861i64 + l * 11i64;
         l >> 16
     }
