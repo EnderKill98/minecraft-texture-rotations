@@ -12,7 +12,13 @@ use serde::Deserialize;
 use std::path::PathBuf;
 
 #[derive(Parser)]
-struct Opts {
+enum Command {
+    Scan(ScanOpts),
+    Verify(VerifyOpts),
+}
+
+#[derive(Parser)]
+struct ScanOpts {
     /// Logging level (e.g. DEBUG, INFO, WARN or ERROR). You can also use the env RUST_LOG instead.
     #[clap(long, short)]
     level: Option<String>,
@@ -24,6 +30,20 @@ struct Opts {
     y: i32,
     z: i32,
     modulo: i32,*/
+}
+
+/// Get the rotation value of a texture at a given coordinate for all the texture variants.
+#[derive(Parser)]
+struct VerifyOpts {
+    // X block coordinate
+    x: i32,
+    // Y block coordinate
+    y: i32,
+    // Z block coordinate
+    z: i32,
+    // Used for the side values of certain textures
+    #[clap(long, short = 's')]
+    is_side: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -42,19 +62,24 @@ struct Config {
 
 fn main() {
     // Parse cli arguments
-    let ref opts = Opts::parse();
+    match Command::parse() {
+        Command::Scan(opts) => scan(opts),
+        Command::Verify(opts) => verify(opts),
+    }
+}
 
-    /*
-    if true {
-        #[rustfmt::skip]
-        println!("Res Van: {}", VanillaTextures {}.get_texture(opts.x, opts.y, opts.z, opts.modulo));
-        #[rustfmt::skip]
-        println!("Res Sod: {}", SodiumTextures {}.get_texture(opts.x, opts.y, opts.z, opts.modulo));
-        #[rustfmt::skip]
-        println!("Res Sod19: {}", Sodium19Textures {}.get_texture(opts.x, opts.y, opts.z, opts.modulo));
-        std::process::exit(0);
-    }*/
+fn verify(opts: VerifyOpts) {
+    let modulo = if opts.is_side { 2 } else { 4 };
+    let (x, y, z) = (opts.x, opts.y, opts.z);
 
+    let sod = SodiumTextures {}.get_texture(x, y, z, modulo);
+    let sod19 = Sodium19Textures {}.get_texture(x, y, z, modulo);
+    let van = VanillaTextures {}.get_texture(x, y, z, modulo);
+
+    println!("Rotation values at {x}, {y}, {z}{} are {sod} (Sodium), {sod19} (Sodium19) and {van} (Vanilla)", if opts.is_side { " (is side)" } else { "" });
+}
+
+fn scan(opts: ScanOpts) {
     // Set logging level if RUST_LOG
     if let Some(level) = &opts.level {
         std::env::set_var("RUST_LOG", level);
