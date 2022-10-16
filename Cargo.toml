@@ -1,6 +1,6 @@
 [package]
 name = "minecraft-texture-rotations"
-version = "0.1.0"
+version = "0.3.0"
 edition = "2021"
 authors = [ "EnderKill98" ]
 
@@ -13,3 +13,12 @@ core_affinity = "0.5.10"
 serde = { version = "1.0.145", features = [ "derive" ] }
 toml = "0.5.9"
 clap = { version = "4.0.15", features = [ "derive" ] }
+
+[build-dependencies]
+cc = "1.0"
+bindgen = "0.60.1"
+
+# TODO: Test whether this improves performance
+#[profile.release]
+#lto = "thin"
+#codegen-units = 1
