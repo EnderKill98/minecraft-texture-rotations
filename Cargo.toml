@@ -19,6 +19,6 @@ cc = "1.0"
 bindgen = "0.60.1"
 
 # TODO: Test whether this improves performance
-#[profile.release]
-#lto = "thin"
-#codegen-units = 1
+[profile.release]
+lto = "thin"
+codegen-units = 1
