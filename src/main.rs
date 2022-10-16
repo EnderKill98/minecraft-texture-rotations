@@ -21,15 +21,17 @@ enum Command {
 struct ScanOpts {
     /// Logging level (e.g. DEBUG, INFO, WARN or ERROR). You can also use the env RUST_LOG instead.
     #[clap(long, short)]
-    level: Option<String>,
+    log_level: Option<String>,
+
+    ///// Optional path to a new file to write results additionally into
+    //#[clap(long, short)]
+    //output: Option<PathBuf>,
+    /// Allow up to the given amount of failures (scan will take longer!)
+    #[clap(long, short = 'f')]
+    max_failures: Option<usize>,
 
     /// Path to the toml config which specifies scanning parameters. See config.toml.sample for the format
-    #[clap(long, short, default_value = "config.toml")]
     config: PathBuf,
-    /*x: i32,
-    y: i32,
-    z: i32,
-    modulo: i32,*/
 }
 
 /// Get the rotation value of a texture at a given coordinate for all the texture variants.
@@ -81,7 +83,7 @@ fn verify(opts: VerifyOpts) {
 
 fn scan(opts: ScanOpts) {
     // Set logging level if RUST_LOG
-    if let Some(level) = &opts.level {
+    if let Some(level) = &opts.log_level {
         std::env::set_var("RUST_LOG", level);
     } else if std::env::var("RUST_LOG").is_err() {
         std::env::set_var("RUST_LOG", "DEBUG");
@@ -122,7 +124,13 @@ fn scan(opts: ScanOpts) {
         }
     };
 
-    log::debug!("Config: {config:#?}");
+    //log::debug!("Config: {config:#?}");
+    log::debug!("Using config {:?}:", config_path);
+    log::debug!("  X: {} (min) to {} (max)", config.x_min, config.x_max);
+    log::debug!("  Y: {} (min) to {} (max)", config.y_min, config.y_max);
+    log::debug!("  Z: {} (min) to {} (max)", config.z_min, config.z_max);
+    log::debug!("  {} threads", config.threads);
+    log::debug!("  The formation has {} rotations", config.formation.len());
     let placement = placement::Placement::new(&config.formation);
 
     let x_total: i32 = config.x_max - config.x_min;
@@ -142,13 +150,26 @@ fn scan(opts: ScanOpts) {
         }
     }
 
+    // Check max_failures value
+    if let Some(max_failures) = opts.max_failures {
+        if max_failures == 0 {
+            log::warn!(
+                "Just remove this argument. You'll otherwise just waste resources for no gain. ;)"
+            );
+        }
+        if max_failures >= config.formation.len() {
+            log::error!("You shouldn't allow more failures then actual blocks in your formation!");
+            std::process::exit(1);
+        }
+    }
+
+    let max_failures = opts.max_failures;
     // Create threads
     let mut thread_handles = vec![];
     for (i, start) in (config.x_min..config.x_max)
         .step_by(per_x as usize + 1)
         .enumerate()
     {
-        log::debug!("Worker {i} doing {start} to {}", start + per_x);
         let placement = placement.clone();
         let config = config.clone();
 
@@ -166,39 +187,87 @@ fn scan(opts: ScanOpts) {
                         );
                     }
                     match config.textures.as_str() {
-                        "Sodium" => texture_finder::TextureFinder {
-                            start_x: start,
-                            end_x: start + per_x,
-                            y_min: config.y_min,
-                            y_max: config.y_max,
-                            z_min: config.z_min,
-                            z_max: config.z_max,
-                            textures: SodiumTextures {},
-                            placement,
+                        "Sodium" => {
+                            if let Some(max_failures) = max_failures {
+                                texture_finder::TextureFinder {
+                                    start_x: start,
+                                    end_x: start + per_x,
+                                    y_min: config.y_min,
+                                    y_max: config.y_max,
+                                    z_min: config.z_min,
+                                    z_max: config.z_max,
+                                    textures: SodiumTextures {},
+                                    placement,
+                                }
+                                .run_with_tolerance(max_failures)
+                            } else {
+                                texture_finder::TextureFinder {
+                                    start_x: start,
+                                    end_x: start + per_x,
+                                    y_min: config.y_min,
+                                    y_max: config.y_max,
+                                    z_min: config.z_min,
+                                    z_max: config.z_max,
+                                    textures: SodiumTextures {},
+                                    placement,
+                                }
+                                .run()
+                            }
                         }
-                        .run(),
-                        "Sodium19" => texture_finder::TextureFinder {
-                            start_x: start,
-                            end_x: start + per_x,
-                            y_min: config.y_min,
-                            y_max: config.y_max,
-                            z_min: config.z_min,
-                            z_max: config.z_max,
-                            textures: Sodium19Textures {},
-                            placement,
+                        "Sodium19" => {
+                            if let Some(max_failures) = max_failures {
+                                texture_finder::TextureFinder {
+                                    start_x: start,
+                                    end_x: start + per_x,
+                                    y_min: config.y_min,
+                                    y_max: config.y_max,
+                                    z_min: config.z_min,
+                                    z_max: config.z_max,
+                                    textures: Sodium19Textures {},
+                                    placement,
+                                }
+                                .run_with_tolerance(max_failures)
+                            } else {
+                                texture_finder::TextureFinder {
+                                    start_x: start,
+                                    end_x: start + per_x,
+                                    y_min: config.y_min,
+                                    y_max: config.y_max,
+                                    z_min: config.z_min,
+                                    z_max: config.z_max,
+                                    textures: Sodium19Textures {},
+                                    placement,
+                                }
+                                .run()
+                            }
                         }
-                        .run(),
-                        "Vanilla" => texture_finder::TextureFinder {
-                            start_x: start,
-                            end_x: start + per_x,
-                            y_min: config.y_min,
-                            y_max: config.y_max,
-                            z_min: config.z_min,
-                            z_max: config.z_max,
-                            textures: VanillaTextures {},
-                            placement,
+                        "Vanilla" => {
+                            if let Some(max_failures) = max_failures {
+                                texture_finder::TextureFinder {
+                                    start_x: start,
+                                    end_x: start + per_x,
+                                    y_min: config.y_min,
+                                    y_max: config.y_max,
+                                    z_min: config.z_min,
+                                    z_max: config.z_max,
+                                    textures: VanillaTextures {},
+                                    placement,
+                                }
+                                .run_with_tolerance(max_failures)
+                            } else {
+                                texture_finder::TextureFinder {
+                                    start_x: start,
+                                    end_x: start + per_x,
+                                    y_min: config.y_min,
+                                    y_max: config.y_max,
+                                    z_min: config.z_min,
+                                    z_max: config.z_max,
+                                    textures: VanillaTextures {},
+                                    placement,
+                                }
+                                .run()
+                            }
                         }
-                        .run(),
                         _ => panic!("Unknown name!"),
                     };
                 })
