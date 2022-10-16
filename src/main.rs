@@ -229,6 +229,7 @@ fn scan(opts: ScanOpts) {
                                     textures: SodiumTextures {},
                                     biome_filter,
                                     biome_cache: None,
+                                    biome_cache_probe_count: 0,
                                     placement,
                                 }
                                 .run_with_tolerance(max_failures)
@@ -243,6 +244,7 @@ fn scan(opts: ScanOpts) {
                                     textures: SodiumTextures {},
                                     biome_filter,
                                     biome_cache: None,
+                                    biome_cache_probe_count: 0,
                                     placement,
                                 }
                                 .run()
@@ -260,6 +262,7 @@ fn scan(opts: ScanOpts) {
                                     textures: Sodium19Textures {},
                                     biome_filter,
                                     biome_cache: None,
+                                    biome_cache_probe_count: 0,
                                     placement,
                                 }
                                 .run_with_tolerance(max_failures)
@@ -274,6 +277,7 @@ fn scan(opts: ScanOpts) {
                                     textures: Sodium19Textures {},
                                     biome_filter,
                                     biome_cache: None,
+                                    biome_cache_probe_count: 0,
                                     placement,
                                 }
                                 .run()
@@ -291,6 +295,7 @@ fn scan(opts: ScanOpts) {
                                     textures: VanillaTextures {},
                                     biome_filter,
                                     biome_cache: None,
+                                    biome_cache_probe_count: 0,
                                     placement,
                                 }
                                 .run_with_tolerance(max_failures)
@@ -305,6 +310,7 @@ fn scan(opts: ScanOpts) {
                                     textures: VanillaTextures {},
                                     biome_filter,
                                     biome_cache: None,
+                                    biome_cache_probe_count: 0,
                                     placement,
                                 }
                                 .run()

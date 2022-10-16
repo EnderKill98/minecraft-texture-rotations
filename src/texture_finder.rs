@@ -14,6 +14,7 @@ pub struct TextureFinder<T> {
     pub textures: T,
     pub biome_filter: Option<(CubiomesFinder, HashSet<BiomeID>)>,
     pub biome_cache: Option<BiomeCache>,
+    pub biome_cache_probe_count: u32,
     pub placement: Placement,
 }
 
@@ -32,15 +33,21 @@ impl<T: TextureProvider> TextureFinder<T> {
                 .name()
                 .unwrap_or("Unnamed Thread")
                 .to_owned();
-            log::debug!("[{thread_name}] Generating biome cache for an {sx}x{sz} area...");
+            /*log::debug!(
+                "[{thread_name}] Generating biome cache for an {sx}x{sz} area ({} blocks total, last cache had {} probes)...",
+                sx * sz, self.biome_cache_probe_count
+            );*/
+            log::debug!("[{thread_name}] Generating biome cache for an {sx}x{sz} area...",);
             let start = Instant::now();
             self.biome_cache = Some(BiomeCache::new(&filter.0, x, self.z_min, sx, sz));
+            self.biome_cache_probe_count = 0;
             log::debug!(
                 "[{thread_name}] Generated biome cache in {:?}",
                 start.elapsed()
             );
         }
 
+        self.biome_cache_probe_count += 1;
         self.biome_cache.as_ref().unwrap().get_biome_at(x, z)
     }
 

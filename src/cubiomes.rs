@@ -15,7 +15,7 @@ impl CubiomesFinder {
             };
             libcubiomes::setupGenerator(
                 &mut finder.generator,
-                libcubiomes::MCVersion_MC_1_18 as c_int,
+                libcubiomes::MCVersion_MC_1_19 as c_int,
                 0,
             );
             libcubiomes::applySeed(
@@ -75,7 +75,8 @@ impl BiomeCache {
         }
     }
     pub fn is_in_bounds(&self, x: i32, z: i32) -> bool {
-        !(x >= self.x + self.sx || x < self.x || z >= self.z + self.sz || z < self.z)
+        //!(x >= self.x + self.sx || x < self.x || z >= self.z + self.sz || z < self.z)
+        x >= self.x && x < self.x + self.sx && z >= self.z && z < self.z + self.sz
     }
 
     pub fn get_biome_at(&self, x: i32, z: i32) -> BiomeID {
