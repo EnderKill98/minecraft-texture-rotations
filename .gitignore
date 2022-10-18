@@ -1,4 +1,6 @@
 /target
 config.toml
+config*
 
 /.vscode
+/c_opencl

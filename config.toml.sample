@@ -17,6 +17,11 @@ pin_threads_to_cores = false
 #textures = "Sodium19"
 #textures = "Vanilla"
 
+# Filter for given biomes when at least one is specified.
+# Biome Id mapping: https://haste.cosmos-ink.net/xyzodicebi.rs
+#filter_for_biome_ids = [ 4, 5 ] # = Filter for Forest (4) and Taiga (5)
+filter_for_biome_ids = [] # = No biome filtering
+
 formation = [
   { x = -6, y = 1, z = 0, rotation = 3, is_side = false },
 ]

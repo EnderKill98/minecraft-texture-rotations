@@ -173,4 +173,36 @@ impl<T: TextureProvider> TextureFinder<T> {
 
         log::debug!("[{thread_name}] Finished after {:?}", first.elapsed());
     }
+/*
+    fn get_rotations_for_range(
+        x_min: i32,
+        x_max: i32,
+        y_min: i32,
+        y_max: i32,
+        z_min: i32,
+        z_max: i32,
+    ) -> RotationCache {
+    }*/
 }
+/*
+struct RotationCache {
+    cache: Vec<u8>,
+    x: i32,
+    x_size: usize,
+    y: i32,
+    y_size: usize,
+    z: i32,
+    z_size: usize,
+}
+
+impl RotationCache {
+    fn index_of(&self, x: i32, y: i32, z: i32) -> usize {
+        let i_x = (x - self.x) as usize;
+        let i_y = (y - self.y) as usize;
+        let i_z = (z - self.z) as usize;
+        self.x_size * self.y_size * self.z_size * i_x + self.y_size + self.z_size * i_z + i_y
+    }
+    fn get_rotation_at(&self, x: i32, y: i32, z: i32) -> u8 {
+        self.cache[self.index_of(x, y, z)]
+    }
+}*/
