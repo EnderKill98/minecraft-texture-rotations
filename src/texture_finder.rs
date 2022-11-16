@@ -81,27 +81,37 @@ impl<T: TextureProvider> TextureFinder<T> {
                 } else {
                     None
                 };
-
-                'next_attempt: for y in self.y_min..=self.y_max {
-                    for b in &self.placement.tops_and_bottoms {
-                        if b.rotation != self.textures.get_texture(x + b.x, y + b.y, z + b.z, 4) {
-                            continue 'next_attempt;
+                for rot_offset in 0..4 {
+                    'next_attempt: for y in self.y_min..=self.y_max {
+                        for b in &self.placement.tops_and_bottoms {
+                            if b.rotation
+                                != (self.textures.get_texture(x + b.x, y + b.y, z + b.z, 4)
+                                    + rot_offset)
+                                    % 4
+                            {
+                                continue 'next_attempt;
+                            }
                         }
-                    }
-                    for b in &self.placement.sides {
-                        if b.rotation != self.textures.get_texture(x + b.x, y + b.y, z + b.z, 2) {
-                            continue 'next_attempt;
+                        for b in &self.placement.sides {
+                            if b.rotation
+                                != (self.textures.get_texture(x + b.x, y + b.y, z + b.z, 2)
+                                    + rot_offset)
+                                    % 4
+                            {
+                                continue 'next_attempt;
+                            }
                         }
-                    }
 
-                    log::info!(
-                        "[{thread_name}] Found at X: {x}, Y: {y}, Z: {z}{}",
-                        if let Some(biome_id) = biome_id {
-                            format!(" (biome {biome_id})")
+                        let biome_id = if let Some(biome_id) = biome_id {
+                            biome_id
                         } else {
-                            String::new()
-                        }
-                    );
+                            CubiomesFinder::new(crate::LO_SEED).get_biome_at(x, y, z)
+                        };
+
+                        log::info!(
+                            "[{thread_name}] Found at X: {x}, Y: {y}, Z: {z} (biome {biome_id}, rot_offset {rot_offset})",
+                        );
+                    }
                 }
             }
         }
@@ -140,40 +150,50 @@ impl<T: TextureProvider> TextureFinder<T> {
                 } else {
                     None
                 };
-                'next_attempt: for y in self.y_min..=self.y_max {
-                    let mut fails: usize = 0;
-                    for b in &self.placement.tops_and_bottoms {
-                        if b.rotation != self.textures.get_texture(x + b.x, y + b.y, z + b.z, 4) {
-                            fails += 1;
-                            if fails > max_failures {
-                                continue 'next_attempt;
+                for rot_offset in 0..4 {
+                    'next_attempt: for y in self.y_min..=self.y_max {
+                        let mut fails: usize = 0;
+                        for b in &self.placement.tops_and_bottoms {
+                            if b.rotation
+                                != (self.textures.get_texture(x + b.x, y + b.y, z + b.z, 4)
+                                    + rot_offset)
+                                    % 4
+                            {
+                                fails += 1;
+                                if fails > max_failures {
+                                    continue 'next_attempt;
+                                }
                             }
                         }
-                    }
-                    for b in &self.placement.sides {
-                        if b.rotation != self.textures.get_texture(x + b.x, y + b.y, z + b.z, 2) {
-                            fails += 1;
-                            if fails > max_failures {
-                                continue 'next_attempt;
+                        for b in &self.placement.sides {
+                            if b.rotation
+                                != (self.textures.get_texture(x + b.x, y + b.y, z + b.z, 2)
+                                    + rot_offset)
+                                    % 4
+                            {
+                                fails += 1;
+                                if fails > max_failures {
+                                    continue 'next_attempt;
+                                }
                             }
                         }
-                    }
 
-                    log::info!(
-                        "[{thread_name}] Found at X: {x}, Y: {y}, Z: {z} ({fails} fails{})",
-                        if let Some(biome_id) = biome_id {
-                            format!(", biome {biome_id}")
+                        let biome_id = if let Some(biome_id) = biome_id {
+                            biome_id
                         } else {
-                            String::new()
-                        }
-                    );
+                            CubiomesFinder::new(crate::LO_SEED).get_biome_at(x, y, z)
+                        };
+                        log::info!(
+                            "[{thread_name}] Found at X: {x}, Y: {y}, Z: {z} ({fails} fails, biome {biome_id}, rot_offset {rot_offset})",
+                        );
+                    }
                 }
             }
         }
 
         log::debug!("[{thread_name}] Finished after {:?}", first.elapsed());
     }
-/*
+    /*
     fn get_rotations_for_range(
         x_min: i32,
         x_max: i32,

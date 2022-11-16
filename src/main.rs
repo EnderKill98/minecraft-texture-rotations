@@ -21,7 +21,7 @@ use clap::Parser;
 use serde::Deserialize;
 use std::{collections::HashSet, path::PathBuf};
 
-const LO_SEED: i64 = 64149200;
+pub const LO_SEED: i64 = 64149200;
 
 #[derive(Parser)]
 enum Command {
