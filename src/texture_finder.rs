@@ -81,23 +81,17 @@ impl<T: TextureProvider> TextureFinder<T> {
                 } else {
                     None
                 };
-                for rot_offset in 0..4 {
+                for mirror_xz in [false, true] {
                     'next_attempt: for y in self.y_min..=self.y_max {
                         for b in &self.placement.tops_and_bottoms {
-                            if b.rotation
-                                != (self.textures.get_texture(x + b.x, y + b.y, z + b.z, 4)
-                                    + rot_offset)
-                                    % 4
-                            {
+                            let rel = ( if mirror_xz { -b.x } else { b.x }, if mirror_xz { -b.z } else { b.z } );
+                            if b.rotation != (self.textures.get_texture(x + rel.0, y + b.y, z + rel.1, 4) + if mirror_xz { 2 } else { 0 }) % 4 {
                                 continue 'next_attempt;
                             }
                         }
                         for b in &self.placement.sides {
-                            if b.rotation
-                                != (self.textures.get_texture(x + b.x, y + b.y, z + b.z, 2)
-                                    + rot_offset)
-                                    % 4
-                            {
+                            let rel = ( if mirror_xz { -b.x } else { b.x }, if mirror_xz { -b.z } else { b.z } );
+                            if b.rotation != self.textures.get_texture(x + rel.0, y + b.y, z + rel.1, 2) % 4 {
                                 continue 'next_attempt;
                             }
                         }
@@ -109,7 +103,7 @@ impl<T: TextureProvider> TextureFinder<T> {
                         };
 
                         log::info!(
-                            "[{thread_name}] Found at X: {x}, Y: {y}, Z: {z} (biome {biome_id}, rot_offset {rot_offset})",
+                            "[{thread_name}] Found at X: {x}, Y: {y}, Z: {z} (biome {biome_id}, mirror_xz {mirror_xz})",
                         );
                     }
                 }
@@ -150,15 +144,12 @@ impl<T: TextureProvider> TextureFinder<T> {
                 } else {
                     None
                 };
-                for rot_offset in 0..4 {
+                for mirror_xz in [false, true] {
                     'next_attempt: for y in self.y_min..=self.y_max {
                         let mut fails: usize = 0;
                         for b in &self.placement.tops_and_bottoms {
-                            if b.rotation
-                                != (self.textures.get_texture(x + b.x, y + b.y, z + b.z, 4)
-                                    + rot_offset)
-                                    % 4
-                            {
+                            let rel = ( if mirror_xz { -b.x } else { b.x }, if mirror_xz { -b.z } else { b.z } );
+                            if b.rotation != (self.textures.get_texture(x + rel.0, y + b.y, z + rel.1, 4) + if mirror_xz { 2 } else { 0 }) % 4 {
                                 fails += 1;
                                 if fails > max_failures {
                                     continue 'next_attempt;
@@ -166,11 +157,8 @@ impl<T: TextureProvider> TextureFinder<T> {
                             }
                         }
                         for b in &self.placement.sides {
-                            if b.rotation
-                                != (self.textures.get_texture(x + b.x, y + b.y, z + b.z, 2)
-                                    + rot_offset)
-                                    % 4
-                            {
+                            let rel = ( if mirror_xz { -b.x } else { b.x }, if mirror_xz { -b.z } else { b.z } );
+                            if b.rotation != self.textures.get_texture(x + rel.0, y + b.y, z + rel.1, 2) % 4 {
                                 fails += 1;
                                 if fails > max_failures {
                                     continue 'next_attempt;
@@ -184,7 +172,7 @@ impl<T: TextureProvider> TextureFinder<T> {
                             CubiomesFinder::new(crate::LO_SEED).get_biome_at(x, y, z)
                         };
                         log::info!(
-                            "[{thread_name}] Found at X: {x}, Y: {y}, Z: {z} ({fails} fails, biome {biome_id}, rot_offset {rot_offset})",
+                            "[{thread_name}] Found at X: {x}, Y: {y}, Z: {z} ({fails} fails, biome {biome_id}, mirror_xz {mirror_xz})",
                         );
                     }
                 }
