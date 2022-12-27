@@ -1,13 +1,3 @@
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
-
-#[allow(dead_code)]
-mod libcubiomes {
-    include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
-}
-
-mod cubiomes;
 mod placement;
 mod rotation_info;
 mod texture_finder;
@@ -75,7 +65,7 @@ struct Config {
     threads: i32,
     pin_threads_to_cores: bool,
     textures: String,
-    filter_for_biome_ids: HashSet<cubiomes::BiomeID>,
+    filter_for_biome_ids: HashSet<cubiomes::finders::BiomeID>,
     formation: Vec<RotationInfo>,
 }
 
@@ -209,7 +199,7 @@ fn scan(opts: ScanOpts) {
 
                     let biome_filter = if config.filter_for_biome_ids.len() > 0 {
                         Some((
-                            cubiomes::CubiomesFinder::new(LO_SEED),
+                            cubiomes::finders::CubiomesFinder::new(LO_SEED),
                             config.filter_for_biome_ids.clone(),
                         ))
                     } else {

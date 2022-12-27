@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 use std::time::Instant;
 
-use crate::cubiomes::{BiomeCache, BiomeID, CubiomesFinder};
 use crate::{placement::Placement, texture_provider::TextureProvider};
+use cubiomes::finders::{BiomeCache, BiomeID, CubiomesFinder};
 
 pub struct TextureFinder<T> {
     pub start_x: i32,
@@ -84,14 +84,26 @@ impl<T: TextureProvider> TextureFinder<T> {
                 for mirror_xz in [false, true] {
                     'next_attempt: for y in self.y_min..=self.y_max {
                         for b in &self.placement.tops_and_bottoms {
-                            let rel = ( if mirror_xz { -b.x } else { b.x }, if mirror_xz { -b.z } else { b.z } );
-                            if b.rotation != (self.textures.get_texture(x + rel.0, y + b.y, z + rel.1, 4) + if mirror_xz { 2 } else { 0 }) % 4 {
+                            let rel = (
+                                if mirror_xz { -b.x } else { b.x },
+                                if mirror_xz { -b.z } else { b.z },
+                            );
+                            if b.rotation
+                                != (self.textures.get_texture(x + rel.0, y + b.y, z + rel.1, 4)
+                                    + if mirror_xz { 2 } else { 0 })
+                                    % 4
+                            {
                                 continue 'next_attempt;
                             }
                         }
                         for b in &self.placement.sides {
-                            let rel = ( if mirror_xz { -b.x } else { b.x }, if mirror_xz { -b.z } else { b.z } );
-                            if b.rotation != self.textures.get_texture(x + rel.0, y + b.y, z + rel.1, 2) % 4 {
+                            let rel = (
+                                if mirror_xz { -b.x } else { b.x },
+                                if mirror_xz { -b.z } else { b.z },
+                            );
+                            if b.rotation
+                                != self.textures.get_texture(x + rel.0, y + b.y, z + rel.1, 2) % 4
+                            {
                                 continue 'next_attempt;
                             }
                         }
@@ -148,8 +160,15 @@ impl<T: TextureProvider> TextureFinder<T> {
                     'next_attempt: for y in self.y_min..=self.y_max {
                         let mut fails: usize = 0;
                         for b in &self.placement.tops_and_bottoms {
-                            let rel = ( if mirror_xz { -b.x } else { b.x }, if mirror_xz { -b.z } else { b.z } );
-                            if b.rotation != (self.textures.get_texture(x + rel.0, y + b.y, z + rel.1, 4) + if mirror_xz { 2 } else { 0 }) % 4 {
+                            let rel = (
+                                if mirror_xz { -b.x } else { b.x },
+                                if mirror_xz { -b.z } else { b.z },
+                            );
+                            if b.rotation
+                                != (self.textures.get_texture(x + rel.0, y + b.y, z + rel.1, 4)
+                                    + if mirror_xz { 2 } else { 0 })
+                                    % 4
+                            {
                                 fails += 1;
                                 if fails > max_failures {
                                     continue 'next_attempt;
@@ -157,8 +176,13 @@ impl<T: TextureProvider> TextureFinder<T> {
                             }
                         }
                         for b in &self.placement.sides {
-                            let rel = ( if mirror_xz { -b.x } else { b.x }, if mirror_xz { -b.z } else { b.z } );
-                            if b.rotation != self.textures.get_texture(x + rel.0, y + b.y, z + rel.1, 2) % 4 {
+                            let rel = (
+                                if mirror_xz { -b.x } else { b.x },
+                                if mirror_xz { -b.z } else { b.z },
+                            );
+                            if b.rotation
+                                != self.textures.get_texture(x + rel.0, y + b.y, z + rel.1, 2) % 4
+                            {
                                 fails += 1;
                                 if fails > max_failures {
                                     continue 'next_attempt;

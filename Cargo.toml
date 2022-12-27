@@ -16,10 +16,8 @@ clap = { version = "4.0.15", features = [ "derive" ] }
 #rustacuda = "0.1"
 #rustacuda_core = "0.1"
 #rustacuda_derive = "0.1"
-
-[build-dependencies]
-cc = "1.0"
-bindgen = "0.60.1"
+cubiomes = { git = "https://github.com/EnderKill98/cubiomes-rs", rev = "6e84798" }
+libcubiomes-sys = { git = "https://github.com/EnderKill98/cubiomes-rs", rev = "6e84798" }
 
 # TODO: Test whether this improves performance
 [profile.release]
