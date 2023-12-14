@@ -199,7 +199,11 @@ fn scan(opts: ScanOpts) {
 
                     let biome_filter = if config.filter_for_biome_ids.len() > 0 {
                         Some((
-                            cubiomes::finders::CubiomesFinder::new(LO_SEED),
+                            cubiomes::finders::CubiomesFinder::new(
+                                LO_SEED,
+                                libcubiomes_sys::MCVersion_MC_1_19,
+                                libcubiomes_sys::Dimension_DIM_OVERWORLD,
+                            ),
                             config.filter_for_biome_ids.clone(),
                         ))
                     } else {

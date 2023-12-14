@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::time::Instant;
 
 use crate::{placement::Placement, texture_provider::TextureProvider};
-use cubiomes::finders::{BiomeCache, BiomeID, CubiomesFinder};
+use cubiomes::finders::{BiomeCache, BiomeID, CoordScaling, CubiomesFinder};
 
 pub struct TextureFinder<T> {
     pub start_x: i32,
@@ -21,7 +21,8 @@ pub struct TextureFinder<T> {
 impl<T: TextureProvider> TextureFinder<T> {
     pub fn get_cached_biome_at(&mut self, x: i32, z: i32) -> BiomeID {
         let filter = self.biome_filter.as_ref().unwrap();
-        if self.biome_cache.is_none() || !self.biome_cache.as_ref().unwrap().is_in_bounds(x, z) {
+        if self.biome_cache.is_none() || !self.biome_cache.as_ref().unwrap().is_in_bounds(x, 63, z)
+        {
             // Update cache
             let wanted_elements = 4000000; // So we get a cache of roughly 16 MiB
             let sz = (self.z_max - self.z_min) + 1;
@@ -39,7 +40,12 @@ impl<T: TextureProvider> TextureFinder<T> {
             );*/
             log::debug!("[{thread_name}] Generating biome cache for an {sx}x{sz} area...",);
             let start = Instant::now();
-            self.biome_cache = Some(BiomeCache::new(&filter.0, x, self.z_min, sx, sz));
+            self.biome_cache = Some(BiomeCache::new(
+                &filter.0,
+                CoordScaling::Block,
+                (x, 63, self.z_min),
+                (sx, 1, sz),
+            ));
             self.biome_cache_probe_count = 0;
             log::debug!(
                 "[{thread_name}] Generated biome cache in {:?}",
@@ -48,7 +54,7 @@ impl<T: TextureProvider> TextureFinder<T> {
         }
 
         self.biome_cache_probe_count += 1;
-        self.biome_cache.as_ref().unwrap().get_biome_at(x, z)
+        self.biome_cache.as_ref().unwrap().get_biome_at(x, 64, z)
     }
 
     pub fn run(&mut self) {
@@ -111,7 +117,12 @@ impl<T: TextureProvider> TextureFinder<T> {
                         let biome_id = if let Some(biome_id) = biome_id {
                             biome_id
                         } else {
-                            CubiomesFinder::new(crate::LO_SEED).get_biome_at(x, y, z)
+                            CubiomesFinder::new(
+                                crate::LO_SEED,
+                                libcubiomes_sys::MCVersion_MC_1_19,
+                                libcubiomes_sys::Dimension_DIM_OVERWORLD,
+                            )
+                            .get_biome_at(x, y, z)
                         };
 
                         log::info!(
@@ -193,7 +204,12 @@ impl<T: TextureProvider> TextureFinder<T> {
                         let biome_id = if let Some(biome_id) = biome_id {
                             biome_id
                         } else {
-                            CubiomesFinder::new(crate::LO_SEED).get_biome_at(x, y, z)
+                            CubiomesFinder::new(
+                                crate::LO_SEED,
+                                libcubiomes_sys::MCVersion_MC_1_19,
+                                libcubiomes_sys::Dimension_DIM_OVERWORLD,
+                            )
+                            .get_biome_at(x, y, z)
                         };
                         log::info!(
                             "[{thread_name}] Found at X: {x}, Y: {y}, Z: {z} ({fails} fails, biome {biome_id}, mirror_xz {mirror_xz})",
