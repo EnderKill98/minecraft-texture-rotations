@@ -1,8 +1,7 @@
-use std::collections::HashSet;
 use std::time::Instant;
 
 use crate::{placement::Placement, texture_provider::TextureProvider};
-use cubiomes::finders::{BiomeCache, BiomeID, CoordScaling, CubiomesFinder};
+//use cubiomes::finders::{BiomeCache, BiomeID, CoordScaling, CubiomesFinder};
 
 pub struct TextureFinder<T> {
     pub start_x: i32,
@@ -12,51 +11,10 @@ pub struct TextureFinder<T> {
     pub z_min: i32,
     pub z_max: i32,
     pub textures: T,
-    pub biome_filter: Option<(CubiomesFinder, HashSet<BiomeID>)>,
-    pub biome_cache: Option<BiomeCache>,
-    pub biome_cache_probe_count: u32,
     pub placement: Placement,
 }
 
 impl<T: TextureProvider> TextureFinder<T> {
-    pub fn get_cached_biome_at(&mut self, x: i32, z: i32) -> BiomeID {
-        let filter = self.biome_filter.as_ref().unwrap();
-        if self.biome_cache.is_none() || !self.biome_cache.as_ref().unwrap().is_in_bounds(x, 63, z)
-        {
-            // Update cache
-            let wanted_elements = 4000000; // So we get a cache of roughly 16 MiB
-            let sz = (self.z_max - self.z_min) + 1;
-            let sx = (wanted_elements / sz)
-                .max(1)
-                .min((self.end_x - self.start_x) + 1);
-
-            let thread_name = std::thread::current()
-                .name()
-                .unwrap_or("Unnamed Thread")
-                .to_owned();
-            /*log::debug!(
-                "[{thread_name}] Generating biome cache for an {sx}x{sz} area ({} blocks total, last cache had {} probes)...",
-                sx * sz, self.biome_cache_probe_count
-            );*/
-            log::debug!("[{thread_name}] Generating biome cache for an {sx}x{sz} area...",);
-            let start = Instant::now();
-            self.biome_cache = Some(BiomeCache::new(
-                &filter.0,
-                CoordScaling::Block,
-                (x, 63, self.z_min),
-                (sx, 1, sz),
-            ));
-            self.biome_cache_probe_count = 0;
-            log::debug!(
-                "[{thread_name}] Generated biome cache in {:?}",
-                start.elapsed()
-            );
-        }
-
-        self.biome_cache_probe_count += 1;
-        self.biome_cache.as_ref().unwrap().get_biome_at(x, 64, z)
-    }
-
     pub fn run(&mut self) {
         let thread_name = std::thread::current()
             .name()
@@ -78,15 +36,6 @@ impl<T: TextureProvider> TextureFinder<T> {
                 log::debug!("[{}] Progress: {}%", thread_name, cur * 100 / max);
             }
             for z in self.z_min..=self.z_max {
-                let biome_id = if self.biome_filter.is_some() {
-                    let biome_id = self.get_cached_biome_at(x, z);
-                    if !self.biome_filter.as_ref().unwrap().1.contains(&biome_id) {
-                        continue;
-                    }
-                    Some(biome_id)
-                } else {
-                    None
-                };
                 for mirror_xz in [false, true] {
                     'next_attempt: for y in self.y_min..=self.y_max {
                         for b in &self.placement.tops_and_bottoms {
@@ -114,19 +63,8 @@ impl<T: TextureProvider> TextureFinder<T> {
                             }
                         }
 
-                        let biome_id = if let Some(biome_id) = biome_id {
-                            biome_id
-                        } else {
-                            CubiomesFinder::new(
-                                crate::LO_SEED,
-                                libcubiomes_sys::MCVersion_MC_1_19,
-                                libcubiomes_sys::Dimension_DIM_OVERWORLD,
-                            )
-                            .get_biome_at(x, y, z)
-                        };
-
                         log::info!(
-                            "[{thread_name}] Found at X: {x}, Y: {y}, Z: {z} (biome {biome_id}, mirror_xz {mirror_xz})",
+                            "[{thread_name}] Found at X: {x}, Y: {y}, Z: {z} (mirror_xz {mirror_xz})",
                         );
                     }
                 }
@@ -158,15 +96,6 @@ impl<T: TextureProvider> TextureFinder<T> {
                 log::debug!("[{}] Progress: {}%", thread_name, cur * 100 / max);
             }
             for z in self.z_min..=self.z_max {
-                let biome_id = if self.biome_filter.is_some() {
-                    let biome_id = self.get_cached_biome_at(x, z);
-                    if !self.biome_filter.as_ref().unwrap().1.contains(&biome_id) {
-                        continue;
-                    }
-                    Some(biome_id)
-                } else {
-                    None
-                };
                 for mirror_xz in [false, true] {
                     'next_attempt: for y in self.y_min..=self.y_max {
                         let mut fails: usize = 0;
@@ -201,18 +130,8 @@ impl<T: TextureProvider> TextureFinder<T> {
                             }
                         }
 
-                        let biome_id = if let Some(biome_id) = biome_id {
-                            biome_id
-                        } else {
-                            CubiomesFinder::new(
-                                crate::LO_SEED,
-                                libcubiomes_sys::MCVersion_MC_1_19,
-                                libcubiomes_sys::Dimension_DIM_OVERWORLD,
-                            )
-                            .get_biome_at(x, y, z)
-                        };
                         log::info!(
-                            "[{thread_name}] Found at X: {x}, Y: {y}, Z: {z} ({fails} fails, biome {biome_id}, mirror_xz {mirror_xz})",
+                            "[{thread_name}] Found at X: {x}, Y: {y}, Z: {z} ({fails} fails, mirror_xz {mirror_xz})",
                         );
                     }
                 }

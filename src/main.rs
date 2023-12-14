@@ -9,7 +9,7 @@ use crate::{
 };
 use clap::Parser;
 use serde::Deserialize;
-use std::{collections::HashSet, path::PathBuf};
+use std::path::PathBuf;
 
 pub const LO_SEED: i64 = 64149200;
 
@@ -65,7 +65,6 @@ struct Config {
     threads: i32,
     pin_threads_to_cores: bool,
     textures: String,
-    filter_for_biome_ids: HashSet<cubiomes::finders::BiomeID>,
     formation: Vec<RotationInfo>,
 }
 
@@ -137,9 +136,6 @@ fn scan(opts: ScanOpts) {
     log::debug!("  Y: {} (min) to {} (max)", config.y_min, config.y_max);
     log::debug!("  Z: {} (min) to {} (max)", config.z_min, config.z_max);
     log::debug!("  {} threads", config.threads);
-    if config.filter_for_biome_ids.len() > 0 {
-        log::debug!("  Filtering for biomes: {:?}", config.filter_for_biome_ids);
-    }
     log::debug!("  The formation has {} rotations", config.formation.len());
     let placement = placement::Placement::new(&config.formation);
 
@@ -197,19 +193,6 @@ fn scan(opts: ScanOpts) {
                         );
                     }
 
-                    let biome_filter = if config.filter_for_biome_ids.len() > 0 {
-                        Some((
-                            cubiomes::finders::CubiomesFinder::new(
-                                LO_SEED,
-                                libcubiomes_sys::MCVersion_MC_1_19,
-                                libcubiomes_sys::Dimension_DIM_OVERWORLD,
-                            ),
-                            config.filter_for_biome_ids.clone(),
-                        ))
-                    } else {
-                        None
-                    };
-
                     match config.textures.as_str() {
                         "Sodium" => {
                             if let Some(max_failures) = max_failures {
@@ -221,9 +204,6 @@ fn scan(opts: ScanOpts) {
                                     z_min: config.z_min,
                                     z_max: config.z_max,
                                     textures: SodiumTextures {},
-                                    biome_filter,
-                                    biome_cache: None,
-                                    biome_cache_probe_count: 0,
                                     placement,
                                 }
                                 .run_with_tolerance(max_failures)
@@ -236,9 +216,6 @@ fn scan(opts: ScanOpts) {
                                     z_min: config.z_min,
                                     z_max: config.z_max,
                                     textures: SodiumTextures {},
-                                    biome_filter,
-                                    biome_cache: None,
-                                    biome_cache_probe_count: 0,
                                     placement,
                                 }
                                 .run()
@@ -254,9 +231,6 @@ fn scan(opts: ScanOpts) {
                                     z_min: config.z_min,
                                     z_max: config.z_max,
                                     textures: Sodium19Textures {},
-                                    biome_filter,
-                                    biome_cache: None,
-                                    biome_cache_probe_count: 0,
                                     placement,
                                 }
                                 .run_with_tolerance(max_failures)
@@ -269,9 +243,6 @@ fn scan(opts: ScanOpts) {
                                     z_min: config.z_min,
                                     z_max: config.z_max,
                                     textures: Sodium19Textures {},
-                                    biome_filter,
-                                    biome_cache: None,
-                                    biome_cache_probe_count: 0,
                                     placement,
                                 }
                                 .run()
@@ -287,9 +258,6 @@ fn scan(opts: ScanOpts) {
                                     z_min: config.z_min,
                                     z_max: config.z_max,
                                     textures: VanillaTextures {},
-                                    biome_filter,
-                                    biome_cache: None,
-                                    biome_cache_probe_count: 0,
                                     placement,
                                 }
                                 .run_with_tolerance(max_failures)
@@ -302,9 +270,6 @@ fn scan(opts: ScanOpts) {
                                     z_min: config.z_min,
                                     z_max: config.z_max,
                                     textures: VanillaTextures {},
-                                    biome_filter,
-                                    biome_cache: None,
-                                    biome_cache_probe_count: 0,
                                     placement,
                                 }
                                 .run()
